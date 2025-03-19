@@ -24,11 +24,11 @@ struct name : public sunset::detail::ExInlineHook<name>
 namespace sunset {
     namespace detail {
         enum class InlineHookError {
-            // The user-set address does not have enough free space (>= 5 Bytes) for a JMP instruction.
+            // The user-set address does not have enough free space (>= 5 Bytes) for a jmp instruction.
             NotEnoughSpaceToInsertJump,
-            // The callback function is too far away from the inline handler to use a 5-Byte CALL instruction.
+            // The callback function is too far away from the inline handler to use a 6-Byte call-indirect instruction.
             CallbackTooFarFromInlineHandler,
-            // The original function is too far away from the inline handler to use 5-Byte JMP instructions.
+            // The original function is too far away from the inline handler to use 5-Byte jmp instructions.
             OriginalCodeTooFarFromInlineHandler
         };
     }
@@ -224,6 +224,7 @@ namespace sunset {
             return true;
         }
 
+#if defined(_M_X64)
         inline bool call_indirect(void* src, void* dst) {
             std::uintptr_t destination_address = reinterpret_cast<std::uintptr_t>(dst);
             std::uintptr_t source_address = reinterpret_cast<std::uintptr_t>(src);
@@ -238,6 +239,18 @@ namespace sunset {
             utils::set_permission(src, 6, restore);
             return true;
         }
+#elif defined(_M_IX86)
+        inline bool call_indirect(void* src, void* dst) {
+            std::uintptr_t destination_address = reinterpret_cast<std::uintptr_t>(dst);
+            std::uintptr_t source_address = reinterpret_cast<std::uintptr_t>(src);
+            auto restore = utils::set_permission(src, 6, utils::Perm::ExecuteReadWrite).unwrap();
+            *reinterpret_cast<std::uint8_t*>(source_address) = 0xFF;
+            *reinterpret_cast<std::uint8_t*>(source_address + 1) = 0x15;
+            *reinterpret_cast<std::uint32_t*>(source_address + 2) = static_cast<std::uint32_t>(destination_address);
+            utils::set_permission(src, 6, restore);
+            return true;
+        }
+#endif
 
         inline void push_u32(void* src, std::uint32_t dst) {
             auto restore = utils::set_permission(src, 5, utils::Perm::ExecuteReadWrite).unwrap();
