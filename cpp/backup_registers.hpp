@@ -236,10 +236,6 @@ namespace sunset {
 		namespace arch = x64;
 #elif defined(_M_IX86)
 		namespace arch = x86;
-/*
-#elif defined(_M_ARM64)
-		namespace arch = aarch64;
-*/
 #endif
 	};
 };
