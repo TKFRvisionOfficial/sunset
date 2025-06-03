@@ -197,7 +197,7 @@ pub unsafe fn inline_hook(ptr: usize, callback: CallbackFuncPtr) -> Result<(), I
         + 6
         + padded_code_len
         + 5
-        + std::mem::size_of::<*const ()>();
+        + ADDRESS_SIZE;
 
     #[cfg(target_arch = "x86_64")]
     // On x64, if we can't find any free space nearby, we have to panic.

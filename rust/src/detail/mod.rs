@@ -22,16 +22,6 @@ pub enum CodeRelocError {
 }
 
 #[cfg(target_arch = "x86_64")]
-fn _new_decoder() -> Result<Decoder> {
-    Decoder::new(MachineMode::LONG_64, StackWidth::_64)
-}
-
-#[cfg(target_arch = "x86")]
-fn _new_decoder() -> Result<Decoder> {
-    Decoder::new(MachineMode::LONG_COMPAT_32, StackWidth::_32)
-}
-
-#[cfg(target_arch = "x86_64")]
 const INSTRUCTION_POINTER: Register = Register::RIP;
 
 #[cfg(target_arch = "x86")]
@@ -44,7 +34,11 @@ pub fn relocate_code(
     source_size: usize,
     dest: usize,
 ) -> std::result::Result<Vec<u8>, CodeRelocError> {
-    let decoder = _new_decoder().unwrap();
+    #[cfg(target_arch = "x86_64")]
+    let decoder = Decoder::new(MachineMode::LONG_64, StackWidth::_64).unwrap();
+    #[cfg(target_arch = "x86")]
+    let decoder = Decoder::new(MachineMode::LONG_COMPAT_32, StackWidth::_32).unwrap();
+
     let source_slice = unsafe { std::slice::from_raw_parts(source as *const u8, source_size) };
 
     let mut source_offset = 0;
@@ -144,7 +138,11 @@ pub fn relocate_code(
 }
 
 pub fn get_instruction_len(ptr: *const u8) -> usize {
-    let decoder = _new_decoder().unwrap();
+    #[cfg(target_arch = "x86_64")]
+    let decoder = Decoder::new(MachineMode::LONG_64, StackWidth::_64).unwrap();
+    #[cfg(target_arch = "x86")]
+    let decoder = Decoder::new(MachineMode::LONG_COMPAT_32, StackWidth::_32).unwrap();
+
     let source_slice = unsafe { std::slice::from_raw_parts(ptr, MAX_INSTRUCTION_LENGTH) };
 
     if let Ok(Some(instr)) = decoder.decode_first::<AllOperands>(source_slice) {
@@ -155,7 +153,11 @@ pub fn get_instruction_len(ptr: *const u8) -> usize {
 }
 
 pub fn find_suitable_backup_size(base: *const u8) -> (usize, usize) {
-    let decoder = _new_decoder().unwrap();
+    #[cfg(target_arch = "x86_64")]
+    let decoder = Decoder::new(MachineMode::LONG_64, StackWidth::_64).unwrap();
+    #[cfg(target_arch = "x86")]
+    let decoder = Decoder::new(MachineMode::LONG_COMPAT_32, StackWidth::_32).unwrap();
+
     let source_slice = unsafe { std::slice::from_raw_parts(base, MAX_INSTRUCTION_LENGTH) };
 
     let mut offset = 0;
