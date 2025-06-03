@@ -11,7 +11,6 @@
 #include "relocate_code.hpp"
 #include "backup_registers.hpp"
 
-
 #define DefineReplacementHook(name) \
 struct name : public sunset::detail::ReplacementHook<name>
 

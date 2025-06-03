@@ -103,7 +103,7 @@ namespace sunset {
 							}
 							std::size_t estimated_instruction_size = static_cast<std::ptrdiff_t>(absolute_address) - absolute_address_minus_instruction_size;
 							// Here, we calculate a new relative address from the absolute address Zydis gives us, and the absolute estimated original instruction size.
-							std::intptr_t relative_address = static_cast<std::ptrdiff_t>(absolute_address) - (dest + dest_offset) - 5;
+							std::intptr_t relative_address = static_cast<std::ptrdiff_t>(absolute_address) - (dest + dest_offset) - estimated_instruction_size;
 							elem.mem.disp.value = relative_address;
 						}
 					}
