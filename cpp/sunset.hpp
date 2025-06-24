@@ -251,6 +251,46 @@ namespace sunset {
         }
 #endif
 
+#if defined(_M_X64)
+        /*
+        enum class RegisterIndex : std::uint8_t {
+            Rax = 0,
+            Rcx = 1,
+            Rdx = 2,
+            Rbx = 3,
+            Rsp = 4,
+            Rbp = 5,
+            Rsi = 6,
+            Rdi = 7,
+            R8 = 8,
+            R9 = 9,
+            R10 = 10,
+            R11 = 11,
+            R12 = 12,
+            R13 = 13,
+            R14 = 14,
+            R15 = 15
+        };
+        */
+#elif defined(_M_IX86)
+        enum class RegisterIndex : std::uint8_t {
+            Eax = 0,
+            Ecx = 1,
+            Edx = 2,
+            Ebx = 3,
+            Esp = 4,
+            Ebp = 5,
+            Esi = 6,
+            Edi = 7,
+        };
+
+        inline void mov_u32(void* src, RegisterIndex reg, std::uint32_t imm32) {
+            auto restore = utils::set_permission(src, 5, utils::Perm::ExecuteReadWrite).unwrap();
+            *reinterpret_cast<std::uint8_t*>(src) = 0xB8 + std::to_underlying(reg);
+            *reinterpret_cast<std::uint32_t*>(reinterpret_cast<std::uintptr_t>(src) + 1) = imm32;
+            utils::set_permission(src, 5, restore).unwrap();
+        }
+#endif
         inline void push_u32(void* src, std::uint32_t dst) {
             auto restore = utils::set_permission(src, 5, utils::Perm::ExecuteReadWrite).unwrap();
             *reinterpret_cast<std::uint8_t*>(src) = 0x68;
