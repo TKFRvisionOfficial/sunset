@@ -21,7 +21,7 @@ pub fn generate(name: &syn::Ident, orig: &syn::Ident, attrs: &HookAttrs) -> impl
         quote! {
             pub fn #_install_fn() {
                 unsafe {
-                    ::sunset::extended_inline_hook(
+                    ::sunset_rs::extended_inline_hook(
                         (#replace as usize),
                         (#name),
                     ).unwrap()
@@ -32,7 +32,7 @@ pub fn generate(name: &syn::Ident, orig: &syn::Ident, attrs: &HookAttrs) -> impl
         quote! {
             pub fn #_install_fn() {
                 unsafe {
-                    ::sunset::inline_hook(
+                    ::sunset_rs::inline_hook(
                         (#replace as usize),
                         (#name),
                     ).unwrap()
@@ -46,7 +46,7 @@ pub fn generate(name: &syn::Ident, orig: &syn::Ident, attrs: &HookAttrs) -> impl
 
             pub fn #_install_fn() {
                 unsafe {
-                    ::sunset::replace_hook(
+                    ::sunset_rs::replace_hook(
                         &mut #orig,
                         #name as *const (),
                     )
