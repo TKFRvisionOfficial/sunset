@@ -5,7 +5,9 @@
 #include <vector>
 #include <mutex>
 #include <type_traits>
-#include <Windows.h>
+#include <utility>
+#include <cstring>
+#include <windows.h>
 #include <detours/detours.h>
 
 #include "relocate_code.hpp"
@@ -30,6 +32,13 @@ namespace sunset {
             // The original function is too far away from the inline handler to use 5-Byte jmp instructions.
             OriginalCodeTooFarFromInlineHandler
         };
+
+        // gcc helper for function to void ptr casts
+        template<typename T>
+        requires std::is_function_v<std::remove_pointer_t<T>>
+        inline void* function_address(T function) {
+            return reinterpret_cast<void*>(function);
+        }
     }
 };
 
@@ -209,6 +218,12 @@ namespace sunset {
             return true;
         }
 
+        template <typename T>
+        requires std::is_function_v<std::remove_pointer_t<T>>
+        inline bool jmp(void* src, T dst) {
+            return jmp(src, detail::function_address(dst));
+        }
+
         inline bool call(void* src, void* dst) {
             std::uintptr_t destination_address = reinterpret_cast<std::uintptr_t>(dst);
             std::uintptr_t source_address = reinterpret_cast<std::uintptr_t>(src);
@@ -221,6 +236,12 @@ namespace sunset {
             *reinterpret_cast<std::int32_t*>(source_address + 1) = static_cast<std::int32_t>(relative_address);
             utils::set_permission(src, 5, restore);
             return true;
+        }
+
+        template <typename T>
+        requires std::is_function_v<std::remove_pointer_t<T>>
+        inline bool call(void* src, T dst) {
+            return call(src, detail::function_address(dst));
         }
 
 #if defined(_M_X64)
@@ -478,7 +499,7 @@ namespace sunset {
 
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourAttach(reinterpret_cast<void**>(&orig_ref()), Derived::callback);
+                DetourAttach(reinterpret_cast<void**>(&orig_ref()), detail::function_address(Derived::callback));
                 DetourTransactionCommit();
             }
 
@@ -488,7 +509,7 @@ namespace sunset {
 
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourAttach(reinterpret_cast<void**>(&orig_ref()), Derived::callback);
+                DetourAttach(reinterpret_cast<void**>(&orig_ref()), detail::function_address(Derived::callback));
                 DetourTransactionCommit();
             }
 
