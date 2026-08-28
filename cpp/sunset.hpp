@@ -32,13 +32,6 @@ namespace sunset {
             // The original function is too far away from the inline handler to use 5-Byte jmp instructions.
             OriginalCodeTooFarFromInlineHandler
         };
-
-        // gcc helper for function to void ptr casts
-        template<typename T>
-        requires std::is_function_v<std::remove_pointer_t<T>>
-        inline void* function_address(T function) {
-            return reinterpret_cast<void*>(function);
-        }
     }
 };
 
@@ -221,7 +214,7 @@ namespace sunset {
         template <typename T>
         requires std::is_function_v<std::remove_pointer_t<T>>
         inline bool jmp(void* src, T dst) {
-            return jmp(src, detail::function_address(dst));
+            return jmp(src, reinterpret_cast<PVOID>(dst));
         }
 
         inline bool call(void* src, void* dst) {
@@ -241,7 +234,7 @@ namespace sunset {
         template <typename T>
         requires std::is_function_v<std::remove_pointer_t<T>>
         inline bool call(void* src, T dst) {
-            return call(src, detail::function_address(dst));
+            return call(src, reinterpret_cast<PVOID>(dst));
         }
 
 #if defined(_M_X64)
@@ -499,7 +492,7 @@ namespace sunset {
 
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourAttach(reinterpret_cast<void**>(&orig_ref()), detail::function_address(Derived::callback));
+                DetourAttach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<PVOID>(Derived::callback));
                 DetourTransactionCommit();
             }
 
@@ -509,14 +502,14 @@ namespace sunset {
 
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourAttach(reinterpret_cast<void**>(&orig_ref()), detail::function_address(Derived::callback));
+                DetourAttach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<PVOID>(Derived::callback));
                 DetourTransactionCommit();
             }
 
             static inline void uninstall() {
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourDetach(reinterpret_cast<void**>(&orig_ref()), Derived::callback);
+                DetourDetach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<PVOID>(Derived::callback));
                 DetourTransactionCommit();
             }
         };
