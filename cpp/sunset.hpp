@@ -214,7 +214,7 @@ namespace sunset {
         template <typename T>
         requires std::is_function_v<std::remove_pointer_t<T>>
         inline bool jmp(void* src, T dst) {
-            return jmp(src, reinterpret_cast<PVOID>(dst));
+            return jmp(src, reinterpret_cast<void*>(dst));
         }
 
         inline bool call(void* src, void* dst) {
@@ -234,7 +234,7 @@ namespace sunset {
         template <typename T>
         requires std::is_function_v<std::remove_pointer_t<T>>
         inline bool call(void* src, T dst) {
-            return call(src, reinterpret_cast<PVOID>(dst));
+            return call(src, reinterpret_cast<void*>(dst));
         }
 
 #if defined(_M_X64)
@@ -492,7 +492,7 @@ namespace sunset {
 
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourAttach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<PVOID>(Derived::callback));
+                DetourAttach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<void*>(Derived::callback));
                 DetourTransactionCommit();
             }
 
@@ -502,14 +502,14 @@ namespace sunset {
 
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourAttach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<PVOID>(Derived::callback));
+                DetourAttach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<void*>(Derived::callback));
                 DetourTransactionCommit();
             }
 
             static inline void uninstall() {
                 DetourTransactionBegin();
                 DetourUpdateThread(GetCurrentThread());
-                DetourDetach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<PVOID>(Derived::callback));
+                DetourDetach(reinterpret_cast<void**>(&orig_ref()), reinterpret_cast<void*>(Derived::callback));
                 DetourTransactionCommit();
             }
         };
